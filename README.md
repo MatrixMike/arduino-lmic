@@ -4,7 +4,7 @@ The purpose of this specific fork is to provided a ready-to-go version of the Ar
 
 - `ttn-abp-dragino-lorashield-au915`: For the Dragino LoRa Shield on AU915 using Activation by Personalisation
 - `ttn-otaa-dragino-lorashield-au915`: For the Dragino LoRa Shield on AU915 using Over The Air Authentication
-- `ttn-otaa-dragino-lorashield-au915`: For the Adafruit Feather M0 LoRa on AU915 using Activation by Personalisation
+- `ttn-abp-adafruit-feather-au915`: For the Adafruit Feather M0 LoRa on AU915 using Activation by Personalisation
 
 Arduino-LMIC library
 ====================

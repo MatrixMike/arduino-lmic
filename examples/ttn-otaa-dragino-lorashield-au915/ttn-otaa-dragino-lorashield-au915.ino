@@ -8,26 +8,25 @@
  * to do whatever they want with them without any restriction,
  * including, but not limited to, copying, modification and redistribution.
  * NO WARRANTY OF ANY KIND IS PROVIDED.
+ * 
+ * Sketch Summary:
+ * Target device: Dragino LoRa Shield (US900) with Arduino Uno
+ * Target frequency: AU915 sub-band 2 (916.8 to 918.2 uplink)
+ * Authentication mode: Over the Air Authentication (OTAA)
  *
- * This example sends a valid LoRaWAN packet with payload "Hello,
- * world!", using frequency and encryption settings matching those of
- * the The Things Network.
- *
- * This uses OTAA (Over-the-air activation), where where a DevEUI and
- * application key is configured, which are used in an over-the-air
- * activation procedure where a DevAddr and session keys are
- * assigned/generated for use with all further communication.
- *
- * Note: LoRaWAN per sub-band duty-cycle limitation is enforced (1% in
- * g1, 0.1% in g2), but not the TTN fair usage policy (which is probably
- * violated by this sketch when left running for longer)!
-
- * To use this sketch, first register your application and device with
- * the things network, to set or generate an AppEUI, DevEUI and AppKey.
- * Multiple devices can use the same AppEUI, but each device has its own
- * DevEUI and AppKey.
- *
- * Do not forget to define the radio type correctly in config.h.
+ * This example requires the following modification before upload:
+ * 1) Enter a valid Application EUI (APPEUI)
+ *    For example: { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+ * 2) Enter a valid Device EUI (DEVEUI)
+ *    For example: { 0x33, 0x22, 0x11, 0x11, 0x88, 0x88, 0x11, 0x22 };
+ *    This is little endian format, so it is in reverse order that the server
+ *    provides. In the example above, the original value was: 2211888811112233
+ * 3) Enter a valid Application Key (APPKEY)
+ *    For example: { 0xe4, 0x17, 0xd3, 0x3b, 0xef, 0xf3, 0x80, 0x7c, 0x7c, 0x6e, 0x42, 0x43, 0x56, 0x7c, 0x21, 0xa7 };
+ * 
+ * The DEVEUI and APPKEY values should be obtained from your LoRaWAN server
+ *  (e.g., TTN or any private LoRa provider). APPEUI is set to zeroes as 
+ * the LoRa Server project does not requre this value.
  *
  *******************************************************************************/
 
