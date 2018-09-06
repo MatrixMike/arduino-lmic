@@ -8,31 +8,24 @@
  * to do whatever they want with them without any restriction,
  * including, but not limited to, copying, modification and redistribution.
  * NO WARRANTY OF ANY KIND IS PROVIDED.
+ * 
+ * Sketch Summary:
+ * Target device: Dragino LoRa Shield (US900) with Arduino Uno
+ * Target frequency: AU915 sub-band 2 (916.8 to 918.2 uplink)
+ * Authentication mode: Activation by Personalisation (ABP)
  *
- * This example sends a valid LoRaWAN packet with payload "Hello,
- * world!", using frequency and encryption settings matching those of
- * the The Things Network.
- *
- * This uses ABP (Activation-by-personalisation), where a DevAddr and
- * Session keys are preconfigured (unlike OTAA, where a DevEUI and
- * application key is configured, while the DevAddr and session keys are
- * assigned/generated in the over-the-air-activation procedure).
- *
- * Note: LoRaWAN per sub-band duty-cycle limitation is enforced (1% in
- * g1, 0.1% in g2), but not the TTN fair usage policy (which is probably
- * violated by this sketch when left running for longer)!
- *
- * To use this sketch, first register your application and device with
- * the things network, to set or generate a DevAddr, NwkSKey and
- * AppSKey. Each device should have their own unique values for these
- * fields.
- *
- * Do not forget to define the radio type correctly in config.h.
+ * This example requires the following modification before upload:
+ * 1) Enter a valid Network Session Key (NWKSKEY)
+ *    For example: 0x07f319fc
+ * 2) Enter a valid Application Session Key (APPSKEY)
+ *    For example: { 0xd9, 0x54, 0xce, 0xbe, 0x9b, 0x5b, 0x76, 0x2d, 0x56, 0x26, 0xc9, 0x4d, 0x82, 0x22, 0xf3, 0xad };
+ * 3) Enter a valid Device Address (DEVADDR)
+ *    For example: { 0xe4, 0x07, 0xe3, 0x3b, 0xef, 0xf3, 0x80, 0x6c, 0x7c, 0x6e, 0x42, 0x43, 0x56, 0x7c, 0x22, 0x37 };
+ * 
+ * The NWKSKEY, APPSKEY and DEVADDR values should be obtained from your
+ * LoRaWAN server (e.g., TTN or any private LoRa provider).
  *
  *******************************************************************************/
-
- // References:
- // [feather] adafruit-feather-m0-radio-with-lora-module.pdf
 
 #include <lmic.h>
 #include <hal/hal.h>
@@ -79,7 +72,7 @@ const unsigned TX_INTERVAL = 5;
 
 // Pin mapping
 // TL Modifications:
-// Specifically for Arduino Uno + Dragino LoRa Shield US 915MHz
+// Specifically for Arduino Uno + Dragino LoRa Shield US900
 const lmic_pinmap lmic_pins = {
     .nss = 10,
     .rxtx = LMIC_UNUSED_PIN,
@@ -246,7 +239,6 @@ void setup() {
     // TTN recommends the second sub band, 1 in a zero based count.
     // https://github.com/TheThingsNetwork/gateway-conf/blob/master/US-global_conf.json
     LMIC_selectSubBand(1);
-    // TL Modifications:
     // Specify to operate on AU915 sub-band 2
     #elif defined(CFG_au921)
     Serial.println(F("Loading AU915/AU921 Configuration..."));
@@ -280,4 +272,3 @@ void loop() {
     os_runloop_once();
     
 }
-

@@ -1,3 +1,11 @@
+This is a forked version of the [mcci-catena/arduino-lmic](https://github.com/mcci-catena/arduino-lmic) library, which is a fork of the original [matthijskooijman/arduino-lmic](https://github.com/matthijskooijman/arduino-lmic) library which ported the LoRaMAC-in-C project to run in the Arduino environment.
+
+The purpose of this specific fork is to provided a ready-to-go version of the Arduino-LMIC library for use on LoRaWAN nodes to use on the AU915 frequency, specifically sub-band 2. This is the same frequency used by TTN. Modifications have been made to the original project to specify AU915 sub-band 2 by default and includes the following sketches (see the `examples` folder):
+
+- `ttn-abp-dragino-lorashield-au915`: For the Dragino LoRa Shield on AU915 using Activation by Personalisation
+- `ttn-otaa-dragino-lorashield-au915`: For the Dragino LoRa Shield on AU915 using Over The Air Authentication
+- `ttn-otaa-dragino-lorashield-au915`: For the Adafruit Feather M0 LoRa on AU915 using Activation by Personalisation
+
 Arduino-LMIC library
 ====================
 
