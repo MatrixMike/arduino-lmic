@@ -24,7 +24,7 @@ The [MCCI arduino-lorawan](https://github.com/mcci-catena/arduino-lorawan) libra
 This library requires Arduino IDE version 1.6.6 or above, since it
 requires C99 mode to be enabled by default.
 
-[![GitHub release](https://img.shields.io/github/release/mcci-catena/arduino-lmic.svg)](https://github.com/mcci-catena/arduino-lmic/releases/latest) [![GitHub commits](https://img.shields.io/github/commits-since/mcci-catena/arduino-lmic/latest.svg)](https://github.com/mcci-catena/arduino-lmic/compare/V2.1.5...master) [![Build Status](https://travis-ci.org/mcci-catena/arduino-lmic.svg?branch=master)](https://travis-ci.org/mcci-catena/arduino-lmic)
+[![GitHub release](https://img.shields.io/github/release/mcci-catena/arduino-lmic.svg)](https://github.com/mcci-catena/arduino-lmic/releases/latest) [![GitHub commits](https://img.shields.io/github/commits-since/mcci-catena/arduino-lmic/latest.svg)](https://github.com/mcci-catena/arduino-lmic/compare/V2.2.1...master) [![Build Status](https://travis-ci.com/mcci-catena/arduino-lmic.svg?branch=master)](https://travis-ci.com/mcci-catena/arduino-lmic)
 
 **Contents:**
 
@@ -66,12 +66,22 @@ requires C99 mode to be enabled by default.
 	- [RXTX Polarity](#rxtx-polarity)
 	- [Pin mapping](#pin-mapping)
 		- [Adafruit Feather M0 LoRa](#adafruit-feather-m0-lora)
+		- [Adafruit Feather 32u4 LoRa](#adafruit-feather-32u4-lora)
 		- [LoRa Nexus by Ideetron](#lora-nexus-by-ideetron)
 		- [MCCI Catena 4450/4460](#mcci-catena-44504460)
 		- [MCCI Catena 4551](#mcci-catena-4551)
 - [Example Sketches](#example-sketches)
 - [Timing](#timing)
 - [Downlink datarate](#downlink-datarate)
+- [Encoding Utilities](#encoding-utilities)
+	- [sflt16](#sflt16)
+		- [JavaScript decoder](#javascript-decoder)
+	- [uflt16](#uflt16)
+		- [JavaScript decoder](#javascript-decoder-1)
+	- [sflt12](#sflt12)
+		- [JavaScript decoder](#javascript-decoder-2)
+	- [uflt12](#uflt12)
+		- [JavaScript decoder](#javascript-decoder-3)
 - [Release History](#release-history)
 - [Contributions](#contributions)
 - [Trademark Acknowledgements](#trademark-acknowledgements)
@@ -275,7 +285,7 @@ commands.
 
 `DISABLE_MCMD_PING_SET` disables the PING_SET MAC commands. It's implied by `DISABLE_PING`.
 
-`DISABLE_MCMD_BCNI_ANS` disables the next-beacon start command. I'ts implied by `DISABLE_BEACON'
+`DISABLE_MCMD_BCNI_ANS` disables the next-beacon start command. It's implied by `DISABLE_BEACON`
 
 #### Special purpose
 
@@ -451,12 +461,12 @@ The configuration entry `lmic_pinmap::rxtx_rx_active` should be set to the state
 > For pre-configured boards, refer to the documentation on your board for the required settings. See the following:
 >
 > - [Adafruit Feather M0 LoRa](#adafruit-feather-m0-lora)
+> - [Adafruit Feather 32u4 LoRa](#adafruit-feather-32u4-lora)
 > - [LoRa Nexus by Ideetron](#lora-nexus-by-ideetron)
 > - [MCCI Catena 4450/4460](#mcci-catena-44504460)
 > - [MCCI Catena 4551](#mcci-catena-4551)
 
-If you don't have the board documentation, you need to provide your own `lmic_pinmap` values. As described above, a variety of configurations are possible. To tell the LMIC library how your board is configured, a pin mapping struct
-is used in the sketch file.
+If you don't have the board documentation, you need to provide your own `lmic_pinmap` values. As described above, a variety of configurations are possible. To tell the LMIC library how your board is configured, you must declare a variable containing a pin mapping struct in the sketch file.
 
 For example, this could look like this:
 
@@ -468,6 +478,12 @@ For example, this could look like this:
     .dio = {2, 3, 4},
     // optional: set polarity of rxtx pin.
     .rxtx_rx_active = 0,
+    // optional: set RSSI cal for listen-before-talk
+    // this value is in dB, and is added to RSSI
+    // measured prior to decision.
+    // Must include noise guardband! Ignored in US,
+    // EU, IN, other markets where LBT is not required.
+    .rssi_cal = 0,
     // optional: override LMIC_SPI_FREQ if non-zero
     .spi_freq = 0,
   };
@@ -481,18 +497,16 @@ respectively. Any pins that are not needed should be specified as
 potentially left out (depending on the environments and requirements,
 see the notes above for when a pin can or cannot be left out).
 
-The name of this struct must always be `lmic_pins`, which is a special name
-recognized by the library.
+The name of the variable containing this struct must always be `lmic_pins`, which is a special name recognized by the library.
 
+<!-- there are links to the following section, so be careful when renaming -->
 #### Adafruit Feather M0 LoRa
 
-See [Feather M0 LoRa](https://www.adafruit.com/product/3178).
+See Adafruit's [Feather M0 LoRa product page](https://www.adafruit.com/product/3178).
 This board uses the following pin mapping, as shown in the various "...-feather"
 sketches.
 
-DIO0 is hard-wired by Adafruit to Arduino D3, but DIO1 is not
-connected to any Arduino pin (it comes to JP1 pin 1, but is not otherwise connected). This pin table
-assumes that you have manually wired JP1 pin 1 to Arduino JP3 pin 9 (Arduino D6).
+DIO0 is hard-wired by Adafruit to Arduino D3, but DIO1 is not connected to any Arduino pin (it comes to JP1 pin 1, but is not otherwise connected). This pin table assumes that you have manually wired JP1 pin 1 to Arduino JP3 pin 9 (Arduino D6).
 
 DIO2 is not connected.
 
@@ -505,6 +519,12 @@ const lmic_pinmap lmic_pins = {
 };
 ```
 
+<!-- there are links to the following section, so be careful when renaming -->
+#### Adafruit Feather 32u4 LoRa
+
+See Adafruit's [Feather 32u4 LoRa product page](https://www.adafruit.com/product/3078).  This board is supported by the [ttn-otaa-feather-us915.ino](examples/ttn-otaa-feather-us915/ttn-otaa-feather-us915.ino) example sketch. It uses the same pin mapping as the [Feather M0 LoRa](#adafruit-feather-m0-lora).
+
+<!-- there are links to the following section, so be careful when renaming -->
 #### LoRa Nexus by Ideetron
 
 This board uses the following pin mapping:
@@ -518,6 +538,7 @@ This board uses the following pin mapping:
   };
 ```
 
+<!-- there are links to the following section, so be careful when renaming -->
 #### MCCI Catena 4450/4460
 
 See [MCCI Catena 4450](https://store.mcci.com/collections/lorawan-iot-and-the-things-network/products/catena-4450-lorawan-iot-device) and [MCCI Catena 4460](https://store.mcci.com/collections/lorawan-iot-and-the-things-network/products/catena-4460-sensor-wing-w-bme680).
@@ -533,6 +554,7 @@ const lmic_pinmap lmic_pins = {
 };
 ```
 
+<!-- there are links to the following section, so be careful when renaming -->
 #### MCCI Catena 4551
 
 See [MCCI Catena 4551](https://store.mcci.com/collections/lorawan-iot-and-the-things-network/products/catena-4551-integrated-lorawan-node).
@@ -553,9 +575,9 @@ const lmic_pinmap lmic_pins = {
 
 ## Example Sketches
 
-This library currently provides several examples:
+This library provides several examples.
 
- - `ttn-abp.ino` shows a basic transmission of a "Hello, world!" message
+ - [`ttn-abp.ino`](examples/ttn-abp/ttn-abp.ino) shows a basic transmission of a "Hello, world!" message
    using the LoRaWAN protocol. It contains some frequency settings and
    encryption keys intended for use with The Things Network, but these
    also correspond to the default settings of most gateways, so it
@@ -567,24 +589,32 @@ This library currently provides several examples:
    Reception of packets (in response to transmission, using the RX1 and
    RX2 receive windows is also supported).
 
- - `ttn-otaa.ino` also sends a "Hello, world!" message, but uses over
+ - [`ttn-otaa.ino`](examples/ttn-otaa/ttn-otaa.ino) also sends a "Hello, world!" message, but uses over
    the air activation (OTAA) to first join a network to establish a
    session and security keys. This was tested with The Things Network,
    but should also work (perhaps with some changes) for other networks.
 
- - `raw.ino` shows how to access the radio on a somewhat low level,
+ - [`raw.ino`](examples/raw/raw.ino) shows how to access the radio on a somewhat low level,
    and allows to send raw (non-LoRaWAN) packets between nodes directly.
    This is useful to verify basic connectivity, and when no gateway is
    available, but this example also bypasses duty cycle checks, so be
    careful when changing the settings.
 
- - `raw-feather.ino` is a version of `raw.ino` that is completely configured
+ - [`raw-feather.ino`](examples/raw-feather/raw-feather.ino) is a version of `raw.ino` that is completely configured
    for the Adafruit [Feather M0 LoRa](https://www.adafruit.com/product/3178)
 
- - `ttn-otaa-feather-us915.ino` is a version of `ttn-otaa.ino` that has
+ - [`ttn-otaa-feather-us915.ino`](examples/ttn-otaa-feather-us915/ttn-otaa-feather-us915.ino) is a version of `ttn-otaa.ino` that has
    been configured for use with the Feather M0 LoRa, on the US915 bandplan,
    with The Things Network. Remember that you may also have to change `config.h`
-   from defaults.
+   from defaults. This sketch also works with the MCCI Catena family of products
+   as well as with the Feather 32u4 LoRa.
+
+ - [`ttn-otaa-feather-us915-dht22.ino`](examples/ttn-otaa-feather-us915-dht22/ttn-otaa-feather-us915-dht22.ino)
+   is a further refinement of `ttn-otaa-feather-us915.ino`. It measures and
+   transmits temperature and relative humidity using a DHT22 sensor. It's only
+   been tested with Feather M0-family products.
+
+ - [`header_test.ino`](examples/header_test/header_test.ino) just tests the header files; it's used for regression testing.
 
 ## Timing
 
@@ -678,9 +708,303 @@ LMIC.dn2Dr = DR_SF9;
 
 When using OTAA, the network communicates the RX2 settings in the join accept message. This version of the LMIC library captures those settings. Therefore, you should not change the RX2 rate after joining.
 
+## Encoding Utilities
+
+It is generally important to make LoRaWAN messages as small as practical. Extra bytes mean extra transmit time, which wastes battery power and interferes with other nodes on the network.
+
+To simplify coding, the Arduino header file <lmic.h> defines some data encoding utility functions to encode floating-point data into `uint16_t` values using `sflt16` or `uflt16` bit layout. For even more efficiency, there are versions that use only the bottom 12 bits of the `uint16_t`, allowing for other bits to be carried in the top 4 bits, or for two values to be crammed into three bytes.
+
+- `uint16_t LMIC_f2sflt16(float)` converts a floating point number to a [`sflt16`](#sflt16)-encoded `uint16_t`.
+- `uint16_t LMIC_f2uflt16(float)` converts a floating-point number to a [`uflt16`](#uflt16)-encoded `uint16_t`.
+- `uint16_t LMIC_f2sflt12(float)` converts a floating-point number to a [`sflt12`](#sflt12)-encoded `uint16_t`, leaving the top four bits of the result set to zero.
+- `uint16_t LMIC_f2uflt12(float)` converts a floating-point number to a [`uflt12`](#sflt12)-encoded `uint16_t`, leaving the top four bits of the result set to zero.
+
+JavaScript code for decoding the data can be found in the following sections.
+
+### sflt16
+
+A `sflt16` datum represents an unsigned floating point number in the range [0, 1.0), transmitted as a 16-bit field. The encoded field is interpreted as follows:
+
+bits | description
+:---:|:---
+15 | Sign bit
+14..11 | binary exponent `b`
+10..0 | fraction `f`
+
+The corresponding floating point value is computed by computing `f`/2048 * 2^(`b`-15). Note that this format is deliberately not IEEE-compliant; it's intended to be easy to decode by hand and not overwhelmingly sophisticated. However, it is similar to IEEE format in that it uses sign-magnitude rather than twos-complement for negative values.
+
+For example, if the data value is 0x8D, 0x55, the equivalent floating point number is found as follows.
+
+1. The full 16-bit number is 0x8D55.
+2. Bit 15 is 1, so this is a negative value.
+3. `b`  is 1, and `b`-15 is -14.  2^-14 is 1/16384
+4. `f` is 0x555. 0x555/2048 = 1365/2048 is 0.667
+5. `f * 2^(b-15)` is therefore 0.667/16384 or 0.00004068
+6. Since the number is negative, the value is -0.00004068
+
+Floating point mavens will immediately recognize:
+
+* This format uses sign/magnitude representation for negative numbers.
+* Numbers do not need to be normalized (although in practice they always are).
+* The format is somewhat wasteful, because it explicitly transmits the most-significant bit of the fraction. (Most binary floating-point formats assume that `f` is is normalized, which means by definition that the exponent `b` is adjusted and `f` is shifted left until the most-significant bit of `f` is one. Most formats then choose to delete the most-significant bit from the encoding. If we were to do that, we would insist that the actual value of `f` be in the range 2048..4095, and then transmit only `f - 2048`, saving a bit. However, this complicates the handling of gradual underflow; see next point.)
+* Gradual underflow at the bottom of the range is automatic and simple with this encoding; the more sophisticated schemes need extra logic (and extra testing) in order to provide the same feature.
+
+#### JavaScript decoder
+
+```javascript
+function sflt162f(rawSflt16)
+	{
+	// rawSflt16 is the 2-byte number decoded from wherever;
+	// it's in range 0..0xFFFF
+	// bit 15 is the sign bit
+	// bits 14..11 are the exponent
+	// bits 10..0 are the the mantissa. Unlike IEEE format,
+	// 	the msb is transmitted; this means that numbers
+	//	might not be normalized, but makes coding for
+	//	underflow easier.
+	// As with IEEE format, negative zero is possible, so
+	// we special-case that in hopes that JavaScript will
+	// also cooperate.
+	//
+	// The result is a number in the open interval (-1.0, 1.0);
+	//
+
+	// throw away high bits for repeatability.
+	rawSflt16 &= 0xFFFF;
+
+	// special case minus zero:
+	if (rawSflt16 == 0x8000)
+		return -0.0;
+
+	// extract the sign.
+	var sSign = ((rawSflt16 & 0x8000) != 0) ? -1 : 1;
+
+	// extract the exponent
+	var exp1 = (rawSflt16 >> 11) & 0xF;
+
+	// extract the "mantissa" (the fractional part)
+	var mant1 = (rawSflt16 & 0x7FF) / 2048.0;
+
+	// convert back to a floating point number. We hope
+	// that Math.pow(2, k) is handled efficiently by
+	// the JS interpreter! If this is time critical code,
+	// you can replace by a suitable shift and divide.
+	var f_unscaled = sSign * mant1 * Math.pow(2, exp1 - 15);
+
+	return f_unscaled;
+	}
+```
+
+### uflt16
+
+A `uflt16` datum represents an unsigned floating point number in the range [0, 1.0), transmitted as a 16-bit field. The encoded field is interpreted as follows:
+
+bits | description
+:---:|:---
+15..12 | binary exponent `b`
+11..0 | fraction `f`
+
+The corresponding floating point value is computed by computing `f`/4096 * 2^(`b`-15). Note that this format is deliberately not IEEE-compliant; it's intended to be easy to decode by hand and not overwhelmingly sophisticated.
+
+For example, if the transmitted message contains 0xEB, 0xF7, and the transmitted byte order is big endian, the equivalent floating point number is found as follows.
+
+1. The full 16-bit number is 0xEBF7.
+2. `b`  is therefore 0xE, and `b`-15 is -1.  2^-1 is 1/2
+3. `f` is 0xBF7. 0xBF7/4096 is 3063/4096 == 0.74780...
+4. `f * 2^(b-15)` is therefore 0.74780/2 or 0.37390
+
+Floating point mavens will immediately recognize:
+
+* There is no sign bit; all numbers are positive.
+* Numbers do not need to be normalized (although in practice they always are).
+* The format is somewhat wasteful, because it explicitly transmits the most-significant bit of the fraction. (Most binary floating-point formats assume that `f` is is normalized, which means by definition that the exponent `b` is adjusted and `f` is shifted left until the most-significant bit of `f` is one. Most formats then choose to delete the most-significant bit from the encoding. If we were to do that, we would insist that the actual value of `f` be in the range 4096..8191, and then transmit only `f - 4096`, saving a bit. However, this complicated the handling of gradual underflow; see next point.)
+* Gradual underflow at the bottom of the range is automatic and simple with this encoding; the more sophisticated schemes need extra logic (and extra testing) in order to provide the same feature.
+
+#### JavaScript decoder
+
+```javascript
+function uflt162f(rawUflt16)
+	{
+	// rawUflt16 is the 2-byte number decoded from wherever;
+	// it's in range 0..0xFFFF
+	// bits 15..12 are the exponent
+	// bits 11..0 are the the mantissa. Unlike IEEE format,
+	// 	the msb is transmitted; this means that numbers
+	//	might not be normalized, but makes coding for
+	//	underflow easier.
+	// As with IEEE format, negative zero is possible, so
+	// we special-case that in hopes that JavaScript will
+	// also cooperate.
+	//
+	// The result is a number in the half-open interval [0, 1.0);
+	//
+
+	// throw away high bits for repeatability.
+	rawUflt16 &= 0xFFFF;
+
+	// extract the exponent
+	var exp1 = (rawUflt16 >> 12) & 0xF;
+
+	// extract the "mantissa" (the fractional part)
+	var mant1 = (rawUflt16 & 0xFFF) / 4096.0;
+
+	// convert back to a floating point number. We hope
+	// that Math.pow(2, k) is handled efficiently by
+	// the JS interpreter! If this is time critical code,
+	// you can replace by a suitable shift and divide.
+	var f_unscaled = mant1 * Math.pow(2, exp1 - 15);
+
+	return f_unscaled;
+	}
+```
+
+### sflt12
+
+A `sflt12` datum represents an signed floating point number in the range [0, 1.0), transmitted as a 12-bit field. The encoded field is interpreted as follows:
+
+bits | description
+:---:|:---
+11 | sign bit
+11..8 | binary exponent `b`
+7..0 | fraction `f`
+
+The corresponding floating point value is computed by computing `f`/128 * 2^(`b`-15). Note that this format is deliberately not IEEE-compliant; it's intended to be easy to decode by hand and not overwhelmingly sophisticated.
+
+For example, if the transmitted message contains 0x8, 0xD5, the equivalent floating point number is found as follows.
+
+1. The full 16-bit number is 0x8D5.
+2. The number is negative.
+3. `b` is 0x1, and `b`-15 is -14.  2^-14 is 1/16384
+4. `f` is 0x55. 0x55/128 is 85/128, or 0.66
+5. `f * 2^(b-15)` is therefore 0.66/16384 or 0.000041 (to two significant digits)
+6. The decoded number is therefore -0.000041.
+
+Floating point mavens will immediately recognize:
+
+* This format uses sign/magnitude representation for negative numbers.
+* Numbers do not need to be normalized (although in practice they always are).
+* The format is somewhat wasteful, because it explicitly transmits the most-significant bit of the fraction. (Most binary floating-point formats assume that `f` is is normalized, which means by definition that the exponent `b` is adjusted and `f` is shifted left until the most-significant bit of `f` is one. Most formats then choose to delete the most-significant bit from the encoding. If we were to do that, we would insist that the actual value of `f` be in the range 128 .. 256, and then transmit only `f - 128`, saving a bit. However, this complicates the handling of gradual underflow; see next point.)
+* Gradual underflow at the bottom of the range is automatic and simple with this encoding; the more sophisticated schemes need extra logic (and extra testing) in order to provide the same feature.
+* It can be strongly argued that dropping the sign bit would be worth the effort, as this would get us 14% more resolution for a minor amount of work.
+
+#### JavaScript decoder
+
+```javascript
+function sflt122f(rawSflt12)
+	{
+	// rawSflt12 is the 2-byte number decoded from wherever;
+	// it's in range 0..0xFFF (12 bits). For safety, we mask
+	// on entry and discard the high-order bits.
+	// bit 11 is the sign bit
+	// bits 10..7 are the exponent
+	// bits 6..0 are the the mantissa. Unlike IEEE format,
+	// 	the msb is transmitted; this means that numbers
+	//	might not be normalized, but makes coding for
+	//	underflow easier.
+	// As with IEEE format, negative zero is possible, so
+	// we special-case that in hopes that JavaScript will
+	// also cooperate.
+	//
+	// The result is a number in the open interval (-1.0, 1.0);
+	//
+
+	// throw away high bits for repeatability.
+	rawSflt12 &= 0xFFF;
+
+	// special case minus zero:
+	if (rawSflt12 == 0x800)
+		return -0.0;
+
+	// extract the sign.
+	var sSign = ((rawSflt12 & 0x800) != 0) ? -1 : 1;
+
+	// extract the exponent
+	var exp1 = (rawSflt12 >> 7) & 0xF;
+
+	// extract the "mantissa" (the fractional part)
+	var mant1 = (rawSflt12 & 0x7F) / 128.0;
+
+	// convert back to a floating point number. We hope
+	// that Math.pow(2, k) is handled efficiently by
+	// the JS interpreter! If this is time critical code,
+	// you can replace by a suitable shift and divide.
+	var f_unscaled = sSign * mant1 * Math.pow(2, exp1 - 15);
+
+	return f_unscaled;
+	}
+```
+
+### uflt12
+
+A `uflt12` datum represents an unsigned floating point number in the range [0, 1.0), transmitted as a 16-bit field. The encoded field is interpreted as follows:
+
+bits | description
+:---:|:---
+11..8 | binary exponent `b`
+7..0 | fraction `f`
+
+The corresponding floating point value is computed by computing `f`/256 * 2^(`b`-15). Note that this format is deliberately not IEEE-compliant; it's intended to be easy to decode by hand and not overwhelmingly sophisticated.
+
+For example, if the transmitted message contains 0x1, 0xAB, the equivalent floating point number is found as follows.
+
+1. The full 16-bit number is 0x1AB.
+2. `b`  is therefore 0x1, and `b`-15 is -14.  2^-14 is 1/16384
+3. `f` is 0xAB. 0xAB/256 is 0.67
+4. `f * 2^(b-15)` is therefore 0.67/16384 or 0.0000408 (to three significant digits)
+
+Floating point mavens will immediately recognize:
+
+* There is no sign bit; all numbers are positive.
+* Numbers do not need to be normalized (although in practice they always are).
+* The format is somewhat wasteful, because it explicitly transmits the most-significant bit of the fraction. (Most binary floating-point formats assume that `f` is is normalized, which means by definition that the exponent `b` is adjusted and `f` is shifted left until the most-significant bit of `f` is one. Most formats then choose to delete the most-significant bit from the encoding. If we were to do that, we would insist that the actual value of `f` be in the range 256 .. 512, and then transmit only `f - 256`, saving a bit. However, this complicates the handling of gradual underflow; see next point.)
+* Gradual underflow at the bottom of the range is automatic and simple with this encoding; the more sophisticated schemes need extra logic (and extra testing) in order to provide the same feature.
+
+#### JavaScript decoder
+
+```javascript
+function uflt122f(rawUflt12)
+	{
+	// rawUflt12 is the 2-byte number decoded from wherever;
+	// it's in range 0..0xFFF (12 bits). For safety, we mask
+	// on entry and discard the high-order bits.
+	// bits 11..8 are the exponent
+	// bits 7..0 are the the mantissa. Unlike IEEE format,
+	// 	the msb is transmitted; this means that numbers
+	//	might not be normalized, but makes coding for
+	//	underflow easier.
+	// As with IEEE format, negative zero is possible, so
+	// we special-case that in hopes that JavaScript will
+	// also cooperate.
+	//
+	// The result is a number in the half-open interval [0, 1.0);
+	//
+
+	// throw away high bits for repeatability.
+	rawUflt12 &= 0xFFF;
+
+	// extract the exponent
+	var exp1 = (rawUflt12 >> 8) & 0xF;
+
+	// extract the "mantissa" (the fractional part)
+	var mant1 = (rawUflt12 & 0xFF) / 256.0;
+
+	// convert back to a floating point number. We hope
+	// that Math.pow(2, k) is handled efficiently by
+	// the JS interpreter! If this is time critical code,
+	// you can replace by a suitable shift and divide.
+	var f_unscaled = sSign * mant1 * Math.pow(2, exp1 - 15);
+
+	return f_unscaled;
+	}
+```
+
 ## Release History
 
-- V2.1.5 fixes issue [#56] (a documentation bug). Documentation was quickly reviewed and other issues were corrected. The OTAA examples were also updated slightly.
+- V2.2.1 corrects the value of `ARDUINO_LMIC_VERSION` ([#123](https://github.com/mcci-catena/arduino-lmic/issues/123)), allows ttn-otaa-feather-us915 example to compile for the Feather 32u4 LoRa ([#116](https://github.com/mcci-catena/arduino-lmic/issues/116)), and addresses documentation issues ([#122](https://github.com/mcci-catena/arduino-lmic/issues/122), [#120](https://github.com/mcci-catena/arduino-lmic/issues/120)).
+
+- V2.2.0 adds encoding functions and `tn-otaa-feather-us915-dht22.ino` example. Plus a large number of issues: [#59](https://github.com/mcci-catena/arduino-lmic/issues/59), [#60](https://github.com/mcci-catena/arduino-lmic/issues/60), [#63](https://github.com/mcci-catena/arduino-lmic/issues/63), [#64](https://github.com/mcci-catena/arduino-lmic/issues/47) (listen-before-talk for Japan), [#65](https://github.com/mcci-catena/arduino-lmic/issues/65), [#68](https://github.com/mcci-catena/arduino-lmic/issues/68), [#75](https://github.com/mcci-catena/arduino-lmic/issues/75), [#78](https://github.com/mcci-catena/arduino-lmic/issues/78), [#80](https://github.com/mcci-catena/arduino-lmic/issues/80), [#91](https://github.com/mcci-catena/arduino-lmic/issues/91), [#98](https://github.com/mcci-catena/arduino-lmic/issues/98), [#101](https://github.com/mcci-catena/arduino-lmic/issues/101). Added full Travis CI testing, switched to travis-ci.com as the CI service. Prepared to publish library in the offical Arduino library list.
+
+- V2.1.5 fixes issue [#56](https://github.com/mcci-catena/arduino-lmic/issues/56) (a documentation bug). Documentation was quickly reviewed and other issues were corrected. The OTAA examples were also updated slightly.
 
 - V2.1.4 fixes issues [#47](https://github.com/mcci-catena/arduino-lmic/issues/47) and [#50](https://github.com/mcci-catena/arduino-lmic/issues/50) in the radio driver for the SX1276 (both related to handling of output power control bits).
 
