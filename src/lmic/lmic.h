@@ -61,6 +61,7 @@
 #   else // ndef LMIC_DEBUG_PRINTF_FN
 //    if there's no other info, just use printf. In a pure Arduino environment,
 //    that's what will happen.
+#     include <stdio.h>
 #     define LMIC_DEBUG_PRINTF(f, ...) printf(f, ## __VA_ARGS__)
 #   endif // ndef LMIC_DEBUG_PRINTF_FN
 # endif // ndef LMIC_DEBUG_PRINTF
@@ -104,7 +105,7 @@ extern "C"{
 #define ARDUINO_LMIC_VERSION_CALC(major, minor, patch, local)	\
 	(((major) << 24u) | ((minor) << 16u) | ((patch) << 8u) | (local))
 
-#define	ARDUINO_LMIC_VERSION	ARDUINO_LMIC_VERSION_CALC(2, 2, 1, 0)
+#define	ARDUINO_LMIC_VERSION	ARDUINO_LMIC_VERSION_CALC(2, 2, 2, 0)
 
 #define	ARDUINO_LMIC_VERSION_GET_MAJOR(v)	\
 	(((v) >> 24u) & 0xFFu)
@@ -253,7 +254,7 @@ struct lmic_t {
 
     u4_t        freq;
     s1_t        rssi;
-    s1_t        snr;
+    s1_t        snr;            // LMIC.snr is SNR times 4
     rps_t       rps;
     u1_t        rxsyms;
     u1_t        dndr;
@@ -315,6 +316,7 @@ struct lmic_t {
     u1_t        margin;
     bit_t       ladrAns;      // link adr adapt answer pending
     bit_t       devsAns;      // device status answer pending
+    s1_t        devAnsMargin; // SNR value between -32 and 31 (inclusive) for the last successfully received DevStatusReq command
     u1_t        adrEnabled;
     u1_t        moreData;     // NWK has more data pending
 #if !defined(DISABLE_MCMD_DCAP_REQ)
